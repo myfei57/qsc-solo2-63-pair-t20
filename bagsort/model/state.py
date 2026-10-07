@@ -85,6 +85,51 @@ class State:
             },
         }
 
+    @classmethod
+    def from_dict(cls, raw: dict[str, Any]) -> "State":
+        """Inverse of :meth:`as_dict`; used to load snapshot envelope state."""
+
+        belt = raw.get("belt", {})
+        return cls(
+            flights={
+                str(key): Flight.from_dict(value)
+                for key, value in raw.get("flights", {}).items()
+            },
+            bags={
+                str(key): Bag.from_dict(value)
+                for key, value in raw.get("bags", {}).items()
+            },
+            mappings={
+                str(key): str(value) for key, value in raw.get("mappings", {}).items()
+            },
+            assignments={
+                str(key): ChuteAssignment.from_dict(value)
+                for key, value in raw.get("assignments", {}).items()
+            },
+            sort_records=[
+                SortRecord.from_dict(value) for value in raw.get("sort_records", [])
+            ],
+            transfer_commands=[
+                TransferCommand.from_dict(value)
+                for value in raw.get("transfer_commands", [])
+            ],
+            load_records=[
+                LoadRecord.from_dict(value) for value in raw.get("load_records", [])
+            ],
+            audit=[AuditEntry.from_dict(value) for value in raw.get("audit", [])],
+            quota_limits={
+                str(key): int(value) for key, value in raw.get("quota_limits", {}).items()
+            },
+            counters={
+                str(key): int(value) for key, value in raw.get("counters", {}).items()
+            },
+            sequence=Sequence.from_dict(raw.get("sequence", {})),
+            recheck_queue=[str(value) for value in raw.get("recheck_queue", [])],
+            belt_carousel=str(belt.get("carousel", "")),
+            belt_batch=int(belt.get("batch", 0)),
+            belt_on_carousel=[str(value) for value in belt.get("on_carousel", [])],
+        )
+
 def apply_entry(state: State, kind: str, payload: dict[str, Any]) -> None:
     """Apply one journal command to ``state`` in place."""
 
